@@ -24,6 +24,16 @@ class Cache:
         self.get = self.tasks.get
         self.gen = 0
 
+    def completed(self, task):
+        tasks = self.tasks
+        task_id = task['id']
+        try:
+            tasks[task_id]
+        except KeyError:
+            # Not in cache
+            logger.info("STORE COMPLETED %r <<<<<<<<<<<<<<<<<<", task_id)
+            tasks[task_id] = task
+
     def send(self, task, uuid):
         tasks = self.tasks
         task_id = task['id']
@@ -31,6 +41,7 @@ class Cache:
             old = tasks[task_id]
         except KeyError:
             # Not in cache
+            logger.info("STORE %r <<<<<<<<<<<<<<<<<<", task_id)
             tasks[task_id] = task
             self.gen += 1
         else:
@@ -193,18 +204,19 @@ class API:
 
         logger.info("%s %s %s %s", method, url, r.ok, time.time()-start)
 
+        if not r.ok:
+            logger.error("%r", r.text)
+            asana_error(r)
+
         data = r.json()
         if 'sync' in data:
             return data
 
-        if not r.ok:
-            asana_error(r)
-
         return data['data']
 
 
-    def get(self, url):
-        return self.make_request('get', url)
+    def get(self, url, **data):
+        return self.make_request('get', url, data)
 
     def post(self, url, method='post', **data):
         return self.make_request('post', url, data)
@@ -247,6 +259,7 @@ class API:
             task_id = task_summary['id']
             task = cache.get(task_id)
             if task is None:
+                logger.info('MISS %r  >>>>>>>>>>>>>>>>>>>>>>>>', task_id)
                 task = self.get_task(task_id)
             yield task
 
@@ -266,11 +279,14 @@ class API:
             try:
                 self.cache.puts[uuid] = queue.put
                 for task in self.get_tasks_in_threads(
-                    self.get("projects/%s/tasks" % self.project_id)
+                    self.get("projects/%s/tasks" % self.project_id,
+                             completed_since='2099-02-22T02:06:58.158Z')
                     ):
                     if not task.get('completed'):
                         self.cache.send(task, uuid)
                         ws.send(get())
+                    else:
+                        self.cache.completed(task)
 
                 while 1:
                     ws.send(get())
