@@ -185,10 +185,13 @@ class API:
 
     def make_request(self, method, url, data=None):
         if data:
-            options = dict(
-                data=json.dumps(dict(data=data)),
-                headers={'Content-Type': 'application/json'},
-                )
+            if method == 'get':
+                options = dict(params=data)
+            else:
+                options = dict(
+                    data=json.dumps(dict(data=data)),
+                    headers={'Content-Type': 'application/json'},
+                    )
         else:
             options = {}
 
@@ -280,7 +283,7 @@ class API:
                 self.cache.puts[uuid] = queue.put
                 for task in self.get_tasks_in_threads(
                     self.get("projects/%s/tasks" % self.project_id,
-                             completed_since='2099-02-22T02:06:58.158Z')
+                             completed_since='now')
                     ):
                     if not task.get('completed'):
                         self.cache.send(task, uuid)
