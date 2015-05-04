@@ -102,6 +102,13 @@ changes are made.
 The client is implemented using (a fairly old version of) the `Dojo
 <http://dojotoolkit.org/>` JavaScript framework.
 
+Using Asana as a backend allowed for fairly quick early prototyping
+and iterative development, but required a lot of caching work to
+overcome limitations in the API for this kind of application.
+
+Future versions of the Kanban will likely use a database back-end and
+use `generational sets <https://github.com/zc/generationalset>`_.
+
 Status/Changes
 ==============
 
