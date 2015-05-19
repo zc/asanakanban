@@ -35,6 +35,8 @@ is used.
 You can drag releases and tags around to represent progress. You can
 also take tasks to work on and mark tasks as blocked.
 
+.. image:: screenshot.png
+
 Setup
 =====
 
